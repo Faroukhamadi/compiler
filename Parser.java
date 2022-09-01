@@ -76,12 +76,86 @@ public final class Parser {
   }
 
   // PARSER
-
   /*
    * VALUE ::= STRINGLIT / NUMBER / OBJECT / ARRAY
    * OBJECT ::= "{" (PAIR ("," PAIR)* )? "}"
    * PAIR ::= STRINGLIT ":" VALUE
    * ARRAY ::= "[" (VALUE ("," VALUE)* )? "]"
    */
+
+  // VALUE ::= STRINGLIT / NUMBER / OBJECT / ARRAY
+  private boolean parseValue() {
+    return parseStringLit() || parseNumber() || parseObject() || parseArray();
+  }
+
+  // OBJECT ::= "{" (PAIR ("," PAIR)* )? "}"
+  private boolean parseObject() {
+    int pos0 = pos;
+    boolean success = parseChar('{') && parsePairs() && parseChar('}');
+    if (!success) {
+      pos = pos0;
+    }
+    return success;
+  }
+
+  // (PAIR ("," PAIR)* )?
+  private boolean parsePairs() {
+    if (parsePair()) {
+      parsePairTails();
+    }
+    return true;
+  }
+
+  // PAIR ::= STRINGLIT ":" VALUE
+  private boolean parsePair() {
+    int pos0 = pos;
+    boolean success = parseStringLit() && parseChar(':') && parseValue();
+    if (!success) {
+      pos = pos0;
+    }
+    return success;
+  }
+
+  // ("," PAIR)*
+  private boolean parsePairTails() {
+    while (true) {
+      int pos0 = pos;
+      boolean success = parseChar(',') && parsePair();
+      if (!success) {
+        pos = pos0;
+        return true;
+      }
+    }
+  }
+
+  // ARRAY ::= "[" (VALUE ("," VALUE)* )? "]"
+  private boolean parseArray() {
+    int pos0 = pos;
+    boolean success = parseChar('[') && parseValues() && parseChar(']');
+    if (!success) {
+      pos = pos0;
+    }
+    return success;
+  }
+
+  // (VALUE ("," VALUE)* )?
+  private boolean parseValues() {
+    if (parseValue()) {
+      parseValueTails();
+    }
+    return true;
+  }
+
+  // ("," VALUE)*
+  private boolean parseValueTails() {
+    while (true) {
+      int pos0 = pos;
+      boolean success = parseChar(',') && parseValue();
+      if (!success) {
+        pos = pos0;
+        return true;
+      }
+    }
+  }
 
 }
